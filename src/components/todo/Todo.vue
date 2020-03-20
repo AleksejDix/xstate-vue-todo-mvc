@@ -32,32 +32,39 @@
 </template>
 
 <script>
-// import { watch, ref } from "@vue/composition-api";
+import { watch, ref } from "@vue/composition-api";
 import { useService } from "@xstate/vue";
 
 export default {
   props: {
-    todoRef: Object
+    todoRef: {
+      type: Object,
+      required: true
+    }
   },
   setup({ todoRef }) {
     const { state, send } = useService(todoRef);
     const { id, title, completed } = state.value.context;
-    // const inputRef = ref(null);
+    const inputRef = ref(null);
 
-    // watch(() => {
-    //   todoRef.execute(state, {
-    //     focusInput() {
-    //       inputRef.current && inputRef.current.select();
-    //     }
-    //   });
-    // });
+    watch(
+      () => state.value,
+      state => {
+        todoRef.execute(state, {
+          focusInput() {
+            inputRef.value.select();
+          }
+        });
+      }
+    );
 
     return {
       state,
       send,
       id,
       title,
-      completed
+      completed,
+      inputRef
     };
   }
 };
