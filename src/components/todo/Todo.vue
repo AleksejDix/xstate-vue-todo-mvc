@@ -16,7 +16,7 @@
       <label @dblclick="send('EDIT')">
         {{ state.context.title }}
       </label>
-      <button class="destroy" @click="() => send('DESTROY')" />
+      <button class="destroy" @click="send('DESTROY')" />
     </div>
     <input
       type="text"

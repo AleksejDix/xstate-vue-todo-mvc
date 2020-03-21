@@ -8,7 +8,7 @@ export const todoMachine = Machine(
     context: {
       id: undefined,
       title: "",
-      remeberedTodoTitle: ""
+      titleBackup: ""
     },
     states: {
       show: {
@@ -32,19 +32,16 @@ export const todoMachine = Machine(
             }
           },
           done: {
-            entry: ["doneTodoCreate", "sendParentAboutCommit"],
+            entry: ["doneTodoCreate", "emitUpdate"],
             on: {
               TOGGLE: "undone"
             }
           },
           undone: {
-            entry: ["undoneTodoCreate", "sendParentAboutCommit"],
+            entry: ["undoneTodoCreate", "emitUpdate"],
             on: {
               TOGGLE: "done",
-              EDIT: {
-                target: "#todo.editing",
-                actions: "focusInput"
-              }
+              EDIT: "#todo.editing"
             }
           },
           hist: {
@@ -53,23 +50,25 @@ export const todoMachine = Machine(
         }
       },
       editing: {
-        entry: ["rememberedTodoTitleCreate"],
+        entry: ["titleBackupCreate", "focusInput"],
         on: {
           UPDATE: [
             {
-              target: "#show.hist",
-              cond: "hasTodoTitle",
-              actions: ["sendParentAboutCommit"]
+              cond: "isEmpty",
+              target: "destroyed"
+            },
+            {
+              target: "#show.hist"
             }
           ],
           CANCEL: {
             target: "#show.hist",
-            actions: "todoUpdate"
+            actions: ["titleUpdate", "titleBackupDestroy"]
           }
         }
       },
       destroyed: {
-        onEntry: ["sendParentAboutDelete"],
+        onEntry: ["emitDelete"],
         type: "final"
       }
     }
@@ -77,37 +76,30 @@ export const todoMachine = Machine(
   {
     guards: {
       isDone: ctx => ctx.completed,
-      hasTodoTitle: ctx => ctx.title.trim().length > 0
+      isEmpty: ctx => !ctx.title.trim()
     },
     actions: {
-      rememberedTodoTitleCreate: assign({
-        remeberedTodoTitle: context => context.title
-      }),
-      todoUpdate: assign({
-        title: ctx => ctx.remeberedTodoTitle,
-        remeberedTodoTitle: undefined
-      }),
+      titleUpdate: assign({ title: ctx => ctx.titleBackup }),
+      titleBackupCreate: assign({ titleBackup: ({ title }) => title }),
+      titleBackupDestroy: assign({ titleBackup: undefined }),
       doneTodoCreate: assign({ completed: true }),
       undoneTodoCreate: assign({ completed: false }),
-      sendParentAboutCommit: sendParent(ctx => ({
+      emitUpdate: sendParent(ctx => ({
         type: "TODO.COMMIT",
         todo: ctx
       })),
-      sendParentAboutDelete: sendParent(ctx => ({
+      emitDelete: sendParent(ctx => ({
         type: "TODO.DELETE",
         id: ctx.id
-      })),
-      log: (c, e) => {
-        console.log(c, e);
-      }
+      }))
     }
   }
 );
 
-// rememberedTodoTitleCreate
+// titleBackupCreate
 // rememberedTodoTitleDestroy
 
-// todoUpdate
+// titleBackupDestroy
 
 // ## Filters cant be destroyed and updated
 // undoneTodoCreate
