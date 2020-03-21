@@ -10,6 +10,17 @@ export const todoMachine = Machine(
       title: "",
       titleBackup: ""
     },
+    on: {
+      DO: {
+        target: ".show.done"
+      },
+      UNDO: {
+        target: ".show.undone"
+      },
+      DESTROY: {
+        target: "destroyed"
+      }
+    },
     states: {
       show: {
         id: "show",
@@ -85,13 +96,16 @@ export const todoMachine = Machine(
       doneTodoCreate: assign({ completed: true }),
       undoneTodoCreate: assign({ completed: false }),
       emitUpdate: sendParent(ctx => ({
-        type: "TODO.COMMIT",
+        type: "UPDATE",
         todo: ctx
       })),
       emitDelete: sendParent(ctx => ({
-        type: "TODO.DELETE",
+        type: "DESTROY",
         id: ctx.id
-      }))
+      })),
+      log: (c, e) => {
+        console.log(c, e);
+      }
     }
   }
 );

@@ -6,9 +6,8 @@
         class="new-todo"
         placeholder="What needs to be done?"
         autoFocus
-        @keypress.enter="send('NEWTODO.COMMIT', { value: $event.target.value })"
-        @change="send('NEWTODO.CHANGE', { value: $event.target.value })"
-        :value="state.context.todo"
+        @keypress.enter="send('todoCreate', { value: $event.target.value })"
+        v-model="state.context.todo"
       />
     </header>
     <section class="main">
@@ -17,9 +16,9 @@
         class="toggle-all"
         type="checkbox"
         :checked="allCompleted"
-        @change="send(markEvent)"
+        @change="send(mark)"
       />
-      <label htmlFor="toggle-all" :title="`Mark all as ${mark}`">
+      <label for="toggle-all" :title="`Mark all as ${mark}`">
         Mark all as {{ mark }}
       </label>
 
@@ -72,7 +71,7 @@
 
       <button
         v-if="numActiveTodos < state.context.todos.length"
-        @click="send('CLEAR_COMPLETED')"
+        @click="send('CLEAR')"
         class="clear-completed"
       >
         Clear completed
@@ -114,15 +113,11 @@ export default {
     });
 
     const allCompleted = computed(() => {
-      state.value.context.todos.length > 0 && numActiveTodos === 0;
+      return state.value.context.todos.length > 0 && numActiveTodos.value === 0;
     });
 
     const mark = computed(() => {
-      return !allCompleted ? "completed" : "active";
-    });
-
-    const markEvent = computed(() => {
-      return `MARK.${mark}`;
+      return !allCompleted.value ? "MARK.done" : "MARK.undone";
     });
 
     const filteredTodos = computed(() =>
@@ -135,9 +130,14 @@ export default {
       numActiveTodos,
       allCompleted,
       filteredTodos,
-      markEvent,
       mark
     };
   }
 };
 </script>
+
+<style>
+#border {
+  border: 1px solid red !important;
+}
+</style>

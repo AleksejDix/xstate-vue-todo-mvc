@@ -8,7 +8,7 @@
   >
     <div class="view">
       <input
-        class="toggle"
+        class="toggle pointer"
         type="checkbox"
         :checked="state.context.completed"
         @change="send('TOGGLE')"
@@ -47,6 +47,13 @@ export default {
     const inputRef = ref(null);
 
     watch(
+      () => state.value.context,
+      s => {
+        console.log(s.completed);
+      }
+    );
+
+    watch(
       () => state.value,
       state => {
         todoRef.execute(state, {
@@ -65,3 +72,9 @@ export default {
   }
 };
 </script>
+
+<style>
+.pointer {
+  cursor: pointer;
+}
+</style>
