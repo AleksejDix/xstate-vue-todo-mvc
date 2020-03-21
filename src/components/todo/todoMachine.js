@@ -4,113 +4,111 @@ const { assign } = actions;
 export const todoMachine = Machine(
   {
     id: "todo",
-    initial: "reading",
+    initial: "show",
     context: {
       id: undefined,
       title: "",
-      prevTitle: ""
-    },
-    on: {
-      TOGGLE_COMPLETE: {
-        target: ".reading.completed",
-        actions: [
-          assign({ completed: true }),
-          sendParent(ctx => ({ type: "TODO.COMMIT", todo: ctx }))
-        ]
-      },
-      DELETE: "deleted"
+      remeberedTodoTitle: ""
     },
     states: {
-      reading: {
+      show: {
+        id: "show",
         initial: "unknown",
+        on: {
+          DESTROY: "destroyed"
+        },
         states: {
           unknown: {
             on: {
               "": [
-                { target: "completed", cond: ctx => ctx.completed },
-                { target: "pending" }
+                {
+                  target: "done",
+                  cond: "isDone"
+                },
+                {
+                  target: "undone"
+                }
               ]
             }
           },
-          pending: {
+          done: {
+            entry: ["doneTodoCreate", "sendParentAboutCommit"],
             on: {
-              SET_COMPLETED: {
-                target: "completed",
-                actions: [
-                  assign({ completed: true }),
-                  sendParent(ctx => ({ type: "TODO.COMMIT", todo: ctx }))
-                ]
-              }
+              TOGGLE: "undone"
             }
           },
-          completed: {
+          undone: {
+            entry: ["undoneTodoCreate", "sendParentAboutCommit"],
             on: {
-              TOGGLE_COMPLETE: {
-                target: "pending",
-                actions: [
-                  assign({ completed: false }),
-                  sendParent(ctx => ({ type: "TODO.COMMIT", todo: ctx }))
-                ]
-              },
-              SET_ACTIVE: {
-                target: "pending",
-                actions: [
-                  assign({ completed: false }),
-                  sendParent(ctx => ({ type: "TODO.COMMIT", todo: ctx }))
-                ]
+              TOGGLE: "done",
+              EDIT: {
+                target: "#todo.editing",
+                actions: "focusInput"
               }
             }
           },
           hist: {
             type: "history"
           }
-        },
-        on: {
-          EDIT: {
-            target: "editing",
-            actions: "focusInput"
-          }
         }
       },
       editing: {
-        onEntry: assign({ prevTitle: ctx => ctx.title }),
+        entry: ["rememberedTodoTitleCreate"],
         on: {
-          CHANGE: {
-            actions: assign({
-              title: (ctx, e) => e.value
-            })
-          },
-          COMMIT: [
+          UPDATE: [
             {
-              target: "reading.hist",
-              actions: sendParent(ctx => ({ type: "TODO.COMMIT", todo: ctx })),
-              cond: ctx => ctx.title.trim().length > 0
-            },
-            { target: "deleted" }
+              target: "#show.hist",
+              cond: "hasTodoTitle",
+              actions: ["sendParentAboutCommit"]
+            }
           ],
-          BLUR: {
-            target: "reading",
-            actions: sendParent(ctx => ({ type: "TODO.COMMIT", todo: ctx }))
-          },
           CANCEL: {
-            target: "reading",
-            actions: assign({ title: ctx => ctx.prevTitle })
+            target: "#show.hist",
+            actions: "todoUpdate"
           }
         }
       },
-      deleted: {
-        onEntry: [
-          "log",
-          sendParent(ctx => ({ type: "TODO.DELETE", id: ctx.id }))
-        ]
+      destroyed: {
+        onEntry: ["sendParentAboutDelete"],
+        type: "final"
       }
     }
   },
   {
+    guards: {
+      isDone: ctx => ctx.completed,
+      hasTodoTitle: ctx => ctx.title.trim().length > 0
+    },
     actions: {
-      log: (ctx, e) => {
-        console.log(ctx, e);
+      rememberedTodoTitleCreate: assign({
+        remeberedTodoTitle: context => context.title
+      }),
+      todoUpdate: assign({
+        title: ctx => ctx.remeberedTodoTitle,
+        remeberedTodoTitle: undefined
+      }),
+      doneTodoCreate: assign({ completed: true }),
+      undoneTodoCreate: assign({ completed: false }),
+      sendParentAboutCommit: sendParent(ctx => ({
+        type: "TODO.COMMIT",
+        todo: ctx
+      })),
+      sendParentAboutDelete: sendParent(ctx => ({
+        type: "TODO.DELETE",
+        id: ctx.id
+      })),
+      log: (c, e) => {
+        console.log(c, e);
       }
     }
   }
 );
+
+// rememberedTodoTitleCreate
+// rememberedTodoTitleDestroy
+
+// todoUpdate
+
+// ## Filters cant be destroyed and updated
+// undoneTodoCreate
+// doneTodoCreate
