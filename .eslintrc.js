@@ -2,7 +2,15 @@ module.exports = {
   root: true,
 
   env: {
-    node: true
+    node: true,
+    jest: true
+  },
+
+  globals: {
+    page: true,
+    browser: true,
+    context: true,
+    jestPuppeteer: true,
   },
 
   extends: ["plugin:vue/essential", "eslint:recommended", "@vue/prettier"],
