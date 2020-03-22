@@ -1,6 +1,5 @@
 const { Machine } = require("xstate");
 const { createModel } = require("@xstate/test");
-jest.setTimeout(20000);
 
 const toggleMachine = Machine({
   id: "toggle",
@@ -12,8 +11,7 @@ const toggleMachine = Machine({
       },
       meta: {
         test: async page => {
-          const selector = await page.waitFor('[data-test="input"]:checked');
-          return page.$(selector);
+          await page.waitForSelector('[data-test="input"]:checked');
         }
       }
     },
@@ -23,10 +21,7 @@ const toggleMachine = Machine({
       },
       meta: {
         test: async page => {
-          const selector = await page.waitFor(
-            '[data-test="input"]:not(:checked)'
-          );
-          return page.$(selector);
+          await page.waitForSelector('[data-test="input"]:not(:checked)');
         }
       }
     }
@@ -50,17 +45,12 @@ describe("toggle", () => {
         it(
           path.description,
           async () => {
-            await page.goto("http://localhost:8085");
-
-            await path.test(page);
+            await page.goto("http://localhost:8080");
+            path.test(page);
           },
           10000
         );
       });
     });
   });
-
-  // it("should have full coverage", () => {
-  //   return toggleModel.testCoverage();
-  // });
 });
