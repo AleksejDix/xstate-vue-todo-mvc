@@ -19,7 +19,7 @@
         :checked="allCompleted"
         @change="send(markEvent)"
       />
-      <label htmlFor="toggle-all" :title="`Mark all as ${mark}`">
+      <label for="toggle-all" :title="`Mark all as ${mark}`">
         Mark all as {{ mark }}
       </label>
 
@@ -109,21 +109,17 @@ export default {
 
     useHashChange(() => send(`SHOW.${window.location.hash.slice(2) || "all"}`));
 
-    const numActiveTodos = computed(() => {
-      return state.value.context.todos.filter(todo => !todo.completed).length;
-    });
+    const numActiveTodos = computed(
+      () => state.value.context.todos.filter(todo => !todo.completed).length
+    );
 
-    const allCompleted = computed(() => {
-      state.value.context.todos.length > 0 && numActiveTodos === 0;
-    });
+    const allCompleted = computed(
+      () => state.value.context.todos.length > 0 && numActiveTodos.value === 0
+    );
 
-    const mark = computed(() => {
-      return !allCompleted ? "completed" : "active";
-    });
+    const mark = computed(() => (!allCompleted.value ? "completed" : "active"));
 
-    const markEvent = computed(() => {
-      return `MARK.${mark}`;
-    });
+    const markEvent = computed(() => `MARK.${mark.value}`);
 
     const filteredTodos = computed(() =>
       filterTodos(state, state.value.context.todos)

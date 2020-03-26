@@ -2,26 +2,24 @@
   <li
     :class="{
       editing: state.matches('editing'),
-      completed
+      completed: state.context.completed
     }"
-    :data-todo-state="completed ? 'completed' : 'active'"
+    :data-todo-state="state.context.completed ? 'completed' : 'active'"
   >
     <div class="view">
       <input
         class="toggle"
         type="checkbox"
         @change="send('TOGGLE_COMPLETE')"
-        :value="completed"
-        :checked="completed"
+        :value="state.context.completed"
+        :checked="state.context.completed"
       />
-      <label @dblclick="send('EDIT')">
-        {{ title }}
-      </label>
-      <button class="destroy" @click="() => send('DELETE')" />
+      <label @dblclick="send('EDIT')"> {{ state.context.title }} </label>
+      <button class="destroy" @click="send('DELETE')" />
     </div>
     <input
       class="edit"
-      :value="title"
+      :value="state.context.title"
       @blur="send('BLUR')"
       @change="send('CHANGE', { value: $event.target.value })"
       @keypress.enter="send('COMMIT')"
@@ -44,7 +42,6 @@ export default {
   },
   setup({ todoRef }) {
     const { state, send } = useService(todoRef);
-    const { id, title, completed } = state.value.context;
     const inputRef = ref(null);
 
     watch(
@@ -61,9 +58,6 @@ export default {
     return {
       state,
       send,
-      id,
-      title,
-      completed,
       inputRef
     };
   }
